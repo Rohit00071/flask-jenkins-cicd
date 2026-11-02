@@ -8,7 +8,7 @@ pipeline {
                 echo 'Cloning Flask backend repository...'
 
                 git branch: 'main',
-                    url: 'YOUR_FLASK_GITHUB_URL'
+                    url: 'https://github.com/Rohit00071/flask-jenkins-cicd.git'
             }
         }
 
@@ -17,8 +17,7 @@ pipeline {
                 echo 'Installing Python dependencies...'
 
                 sh '''
-                    python3 -m pip install --upgrade pip
-                    pip3 install -r requirements.txt
+                    python3 -m pip install --user -r requirements.txt
                 '''
             }
         }
@@ -35,7 +34,7 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deploying Flask application...'
+                echo 'Deploying Flask application with PM2...'
 
                 sh '''
                     pm2 delete flask-app || true
