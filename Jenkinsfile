@@ -3,21 +3,15 @@ pipeline {
 
     stages {
 
-        stage('Clone Repository') {
-            steps {
-                echo 'Cloning Flask backend repository...'
-
-                git branch: 'main',
-                    url: 'https://github.com/Rohit00071/flask-jenkins-cicd.git'
-            }
-        }
-
         stage('Install Dependencies') {
             steps {
-                echo 'Installing Python dependencies...'
+                echo 'Installing Flask dependencies...'
 
                 sh '''
-                    python3 -m pip install --user -r requirements.txt
+                    python3 -m venv .venv
+                    . .venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
                 '''
             }
         }
@@ -27,19 +21,24 @@ pipeline {
                 echo 'Testing Flask application...'
 
                 sh '''
-                    python3 -m py_compile app.py
+                    . .venv/bin/activate
+                    python -m py_compile app.py
                 '''
             }
         }
 
         stage('Deploy') {
             steps {
-                echo 'Deploying Flask application with PM2...'
+                echo 'Deploying Flask application...'
 
                 sh '''
-                    pm2 delete flask-app || true
-                    pm2 start app.py --name flask-app --interpreter python3
-                    pm2 save
+                    pkill -f "python.*app.py" || true
+
+                    nohup .venv/bin/python app.py > flask.log 2>&1 &
+
+                    sleep 3
+
+                    curl -f http://127.0.0.1:5000/api/health
                 '''
             }
         }
